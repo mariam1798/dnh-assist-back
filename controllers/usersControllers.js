@@ -37,20 +37,21 @@ const upload = multer({
 });
 
 const jwt = require("jsonwebtoken");
-
 const registerUser = async (req, res) => {
+  console.log("Request Body:", req.body);
+  console.log("File:", req.file);
+
   const { name, email, password, role, overview } = req.body;
+
   if (!name || !email || !password || !role) {
-    return res.status(401).json({ error: "please fill the required fields" });
+    return res.status(400).json({ error: "All fields are required" });
   }
 
   const hashedPassword = bcrypt.hashSync(password, 6);
 
-  let avatarUrl = "";
-  if (req.file) {
-    // Assuming you might want to handle or process the file URL here
-    avatarUrl = `/path/to/uploads/${req.file.filename}`;
-  }
+  let avatarUrl = req.file
+    ? `/uploads/${req.file.filename}`
+    : "/uploads/default-avatar.png";
 
   const newUser = {
     name,
@@ -65,10 +66,11 @@ const registerUser = async (req, res) => {
     await knex("users").insert(newUser);
     return res.status(201).json(newUser);
   } catch (error) {
-    console.log(error);
-    return res.status(400).json({ error: "failed registeration" });
+    console.error("Error inserting user:", error);
+    return res.status(500).json({ error: "Failed to register user" });
   }
 };
+
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
