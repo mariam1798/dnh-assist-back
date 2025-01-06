@@ -7,6 +7,9 @@ const {
   rescheduleBooking,
   cancelBooking,
   addSlot,
+  getBlockedDates,
+  getBookingDetails,
+  unblockBlockedDates,
 } = require("../controllers/bookingControllers");
 
 router.get("/available", getAvailableSlots);
@@ -15,9 +18,11 @@ router.post("/booking", createBooking);
 
 router.get("/bookings", getBookings);
 
-router.post("/reschedule", rescheduleBooking);
-
-router.post("/cancel", cancelBooking);
+router.patch("/reschedule/:bookingId", rescheduleBooking);
+router.delete("/blocked/:bookingId", unblockBlockedDates);
+router.delete("/cancel/:bookingId", cancelBooking);
 router.post("/add", addSlot);
+router.get("/block", getBlockedDates);
+router.get("/:bookingId", getBookingDetails);
 
 module.exports = router;
