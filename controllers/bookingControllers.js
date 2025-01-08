@@ -189,7 +189,7 @@ Here are your updated booking details:
 - Payment Status: Completed
 
 If you would like to cancel or reschedule your booking again, please click the link below:
-http://localhost:3000/profile/${bookingId}
+${FRONTEND_URL}/profile/${bookingId}
 
 Thank you for choosing our service!
 
@@ -210,7 +210,7 @@ The DNH Dental Team`,
       <li><strong>Payment Status:</strong> Completed </li>
     </ul>
     <p>If you would like to cancel or reschedule your booking again, please click the link below:</p>
-    <p><a href="http://localhost:3000/profile/${bookingId}">Cancel or Reschedule Booking</a></p>
+    <p><a href="${FRONTEND_URL}/profile/${bookingId}">Cancel or Reschedule Booking</a></p>
     <p>Thank you for choosing our service!</p>
     <p>Best regards,</p>
     <p>The DNH Dental Team</p>`,
