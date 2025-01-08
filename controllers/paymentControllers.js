@@ -15,16 +15,15 @@ const createPaymentIntent = async (req, res) => {
         .json({ error: "Booking ID and amount are required." });
     }
 
-    // Create a payment intent
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100), // Convert GBP to pence
-      currency: currency || "gbp", // Default to GBP
-      metadata: { bookingId }, // Attach booking metadata
+      amount: Math.round(amount * 100),
+      currency: currency || "gbp",
+      metadata: { bookingId },
     });
 
     res.status(200).json({
-      clientSecret: paymentIntent.client_secret, // Send the client secret to the front-end
-      paymentIntentId: paymentIntent.id, // Optional: Include for debugging or logging
+      clientSecret: paymentIntent.client_secret,
+      paymentIntentId: paymentIntent.id,
     });
   } catch (error) {
     console.error("Error creating payment intent:", error);
@@ -42,36 +41,28 @@ const confirmPayment = async (req, res) => {
       });
     }
 
-    // Retrieve payment intent
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentId);
-    console.log("Payment Intent Status:", paymentIntent.status);
 
     if (paymentIntent.status === "succeeded") {
-      // Fetch booking details
       const bookingDetails = await knex("bookings")
         .where({ id: bookingId })
         .first();
-      console.log("Booking ID:", bookingId);
-      console.log("Booking Details:", bookingDetails);
 
       if (!bookingDetails) {
         return res.status(404).json({ error: "Booking details not found." });
       }
 
-      // Update booking payment status
       const updateResult = await knex("bookings")
         .where({ id: bookingId })
         .update({
           payment_status: "Completed",
           payment_id: paymentId,
         });
-      console.log("Update Result:", updateResult);
 
       if (updateResult === 0) {
         throw new Error("Booking ID not found in database.");
       }
 
-      // Calculate blocked dates (the day before and after)
       const bookedDate = new Date(bookingDetails.date);
       const dayBefore = new Date(bookedDate);
       const dayAfter = new Date(bookedDate);
@@ -84,7 +75,6 @@ const confirmPayment = async (req, res) => {
         dayAfter.toISOString().split("T")[0],
       ];
 
-      // Insert blocked dates into the database
       const blockedDates = datesToBlock.map((blockDate) => ({
         date: blockDate,
         booking_id: bookingId,
@@ -92,11 +82,8 @@ const confirmPayment = async (req, res) => {
 
       await knex("blocked_dates").insert(blockedDates);
 
-      // Send Emails
       await sendPaymentConfirmationEmail(bookingId, bookingDetails);
       await sendCompanyNotificationEmail(paymentId, bookingId);
-
-      console.log("Emails sent successfully");
 
       res.status(200).json({
         message: "Payment confirmed, booking updated, and emails sent!",
@@ -123,7 +110,7 @@ const sendCompanyNotificationEmail = async (paymentId, bookingId) => {
 
   const mailOptions = {
     from: "noreply@dnh.dental",
-    to: "admin@dnh.dental", // Replace with your company's admin email
+    to: "admin@dnh.dental",
     subject: "New Booking Payment Received",
     text: `A new payment has been received for booking ID: ${bookingId}.
 Payment ID: ${paymentId}.
@@ -152,11 +139,9 @@ const sendPaymentConfirmationEmail = async (bookingId, bookingDetails) => {
     throw new Error("Invalid booking details or missing email.");
   }
 
-  // Destructure booking details
   const { dentist_name, patient_name, email, phone, date, time, address } =
     bookingDetails;
 
-  // Format date
   const formattedDate = new Date(date).toLocaleDateString(undefined, {
     year: "numeric",
     month: "long",

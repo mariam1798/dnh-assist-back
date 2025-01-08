@@ -1,5 +1,4 @@
 const bcrypt = require("bcrypt");
-const crypto = require("crypto");
 
 require("dotenv").config();
 const path = require("path");
@@ -38,9 +37,6 @@ const upload = multer({
 
 const jwt = require("jsonwebtoken");
 const registerUser = async (req, res) => {
-  console.log("Request Body:", req.body);
-  console.log("File:", req.file);
-
   const { name, email, password, role, overview } = req.body;
 
   if (!name || !email || !password || !role) {
@@ -92,7 +88,6 @@ const loginUser = async (req, res) => {
     );
     res.status(200).json({ token });
   } catch (error) {
-    console.log(error);
     return res.status(400).json({ error: "Failed login" });
   }
 };
