@@ -167,7 +167,7 @@ const sendPaymentConfirmationEmail = async (bookingId, bookingDetails) => {
     from: "noreply@dnh.dental",
     to: `${email}`,
     subject: "Payment Confirmation and Booking Details",
-    text: `Dear ${patient_name},
+    text: `Dear ${dentist_name},
 
 Your payment for booking ID: ${bookingId} has been successfully processed.
 
@@ -183,13 +183,13 @@ Here are your booking details:
 - Payment Status: Completed
 
 If you would like to cancel or reschedule your booking, please click the link below:
-http://localhost:3001/profile/${bookingId}
+http://localhost:3000/profile/${bookingId}
 
 Thank you for choosing our service!
 
 Best regards,
 The DNH Dental Team`,
-    html: `<p>Dear ${patient_name},</p>
+    html: `<p>Dear ${dentist_name},</p>
     <p>Your payment for booking ID: <strong>${bookingId}</strong> has been successfully processed.</p>
     <p>Here are your booking details:</p>
     <ul>
@@ -204,7 +204,7 @@ The DNH Dental Team`,
       <li><strong>Payment Status:</strong> Completed </li>
     </ul>
     <p>If you would like to cancel or reschedule your booking, please click the link below:</p>
-    <p><a href="http://localhost:3001/profile/${bookingId}">Cancel or Reschedule Booking</a></p>
+    <p><a href="http://localhost:3000/profile/${bookingId}">Cancel or Reschedule Booking</a></p>
     <p>Thank you for choosing our service!</p>
     <p>Best regards,</p>
     <p>The DNH Dental Team</p>`,
