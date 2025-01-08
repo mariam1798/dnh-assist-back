@@ -197,6 +197,7 @@ The DNH Dental Team`,
 
   await transporter.sendMail(mailOptions);
 };
+console.log("hello");
 module.exports = {
   createPaymentIntent,
   confirmPayment,

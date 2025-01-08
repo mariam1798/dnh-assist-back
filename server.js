@@ -17,6 +17,10 @@ app.use("/booking", bookingRoutes);
 app.use("/payment", paymentRoutes);
 const path = require("path");
 
+app.get("/", (req, res) => {
+  res.json({ message: "App is working!" });
+});
+
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.listen(port, () => {
