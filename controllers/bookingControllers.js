@@ -3,6 +3,8 @@ require("dotenv").config();
 const configuration = require("../knexfile");
 const knex = require("knex")(configuration);
 const nodemailer = require("nodemailer");
+const FRONTEND_URL =
+  process.env.FRONTEND_URL || "https://dnhassist.vercel.app/";
 const getAvailableSlots = async (req, res) => {
   const { date } = req.query;
 

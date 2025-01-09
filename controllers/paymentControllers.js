@@ -4,6 +4,8 @@ const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 const configuration = require("../knexfile");
 const nodemailer = require("nodemailer");
 const knex = require("knex")(configuration);
+const FRONTEND_URL =
+  process.env.FRONTEND_URL || "https://dnhassist.vercel.app/";
 
 const createPaymentIntent = async (req, res) => {
   const { bookingId, amount, currency } = req.body;
