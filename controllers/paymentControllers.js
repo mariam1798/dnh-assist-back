@@ -7,6 +7,28 @@ const knex = require("knex")(configuration);
 const FRONTEND_URL =
   process.env.FRONTEND_URL || "https://dnhassist.vercel.app/";
 
+const cron = require("node-cron");
+
+const deleteExpiredBookings = async () => {
+  const EXPIRATION_MINUTES = 5;
+  const expirationTime = new Date(Date.now() - EXPIRATION_MINUTES * 60 * 1000);
+
+  try {
+    const expiredBookings = await knex("bookings")
+      .where("payment_status", "Pending")
+      .andWhere("created_at", "<", expirationTime);
+
+    for (const booking of expiredBookings) {
+      await knex("bookings").where({ id: booking.id }).delete();
+    }
+  } catch (error) {
+    console.error("Error deleting expired bookings:", error);
+  }
+};
+
+// Run the job every minute
+cron.schedule("* * * * *", deleteExpiredBookings);
+
 const createPaymentIntent = async (req, res) => {
   const { bookingId, amount, currency } = req.body;
 
@@ -152,7 +174,7 @@ const sendPaymentConfirmationEmail = async (bookingId, bookingDetails) => {
 
   const mailOptions = {
     from: "noreply@dnh.dental",
-    to: `${email}`,
+    to: [email, "photogrammetry@dnhlab.co.uk"],
     subject: "Payment Confirmation and Booking Details",
     text: `Dear ${dentist_name},
 
@@ -199,7 +221,7 @@ The DNH Dental Team`,
 
   await transporter.sendMail(mailOptions);
 };
-console.log("hello");
+
 module.exports = {
   createPaymentIntent,
   confirmPayment,

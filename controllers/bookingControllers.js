@@ -173,7 +173,7 @@ const sendRescheduleConfirmationEmail = async (bookingId, bookingDetails) => {
 
   const mailOptions = {
     from: "noreply@dnh.dental",
-    to: `${email}`,
+    to: [email, "photogrammetry@dnhlab.co.uk"],
     subject: "Booking Rescheduled Successfully",
     text: `Dear ${dentist_name},
 
@@ -342,13 +342,17 @@ const sendCancellationEmail = async (bookingDetails) => {
 
   const mailOptions = {
     from: "noreply@dnh.dental",
-    to: `${email}`,
-    subject: "Booking Canceled Successfully",
+    to: [email, "photogrammetry@dnhlab.co.uk"],
+    subject: "Cancellation in Process",
     text: `Dear ${patient_name},
 
-Your booking with ID: ${bookingDetails.id} has been successfully canceled.
+Your booking with ID: ${bookingDetails.id} is being processed for cancellation. We will review your details and get back to you regarding your refund.
 
-Here are the details of your canceled booking:
+Please note: 
+- If you already have the Tupel scan, we will not be able to issue a refund.
+- If you have any questions, feel free to contact us at support@dnh.dental.
+
+Here are the details of your booking:
 - Booking ID: ${bookingDetails.id}
 - Dentist: ${dentist_name}
 - Patient Name: ${patient_name}
@@ -358,15 +362,18 @@ Here are the details of your canceled booking:
 - Time: ${time}
 - Address: ${address}
 
-We apologize for any inconvenience this may have caused.
-
-Thank you for choosing our service!
+Thank you for your patience. We will get back to you shortly.
 
 Best regards,
 The DNH Dental Team`,
-    html: `<p>Dear ${dentist_name},</p>
-    <p>Your booking with ID: <strong>${bookingDetails.id}</strong> has been successfully canceled.</p>
-    <p>Here are the details of your canceled booking:</p>
+    html: `<p>Dear ${patient_name},</p>
+    <p>Your booking with ID: <strong>${bookingDetails.id}</strong> is being processed for cancellation. We will review your details and get back to you regarding your refund.</p>
+    <p><strong>Please note:</strong></p>
+    <ul>
+      <li>If you already have the Tupel scan, we will not be able to issue a refund.</li>
+      <li>If you have any questions, feel free to contact us at <a href="mailto:info@dnh.dental">info@dnh.dental</a>.</li>
+    </ul>
+    <p>Here are the details of your booking:</p>
     <ul>
       <li><strong>Booking ID:</strong> ${bookingDetails.id}</li>
       <li><strong>Dentist:</strong> ${dentist_name}</li>
@@ -377,8 +384,7 @@ The DNH Dental Team`,
       <li><strong>Time:</strong> ${time}</li>
       <li><strong>Address:</strong> ${address}</li>
     </ul>
-    <p>We apologize for any inconvenience this may have caused.</p>
-    <p>Thank you for choosing our service!</p>
+    <p>Thank you for your patience. We will get back to you shortly.</p>
     <p>Best regards,</p>
     <p>The DNH Dental Team</p>`,
   };
