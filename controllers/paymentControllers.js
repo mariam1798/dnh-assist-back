@@ -20,7 +20,7 @@ const createPaymentIntent = async (req, res) => {
       currency: currency || "gbp",
       metadata: { bookingId },
     });
-
+    console.log("Payment Intent created:", paymentIntent);
     res.status(200).json({
       clientSecret: paymentIntent.client_secret,
       paymentIntentId: paymentIntent.id,
