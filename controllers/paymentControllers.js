@@ -44,7 +44,7 @@ const createPaymentIntent = async (req, res) => {
       currency: currency || "gbp",
       metadata: { bookingId },
     });
-    console.log("Payment Intent created:", paymentIntent);
+
     res.status(200).json({
       clientSecret: paymentIntent.client_secret,
       paymentIntentId: paymentIntent.id,
@@ -166,11 +166,85 @@ const sendPaymentConfirmationEmail = async (bookingId, bookingDetails) => {
   const { dentist_name, patient_name, email, phone, date, time, address } =
     bookingDetails;
 
-  const formattedDate = new Date(date).toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  // Log the date and time for debugging
+
+  // Validate date and time
+  if (!date || !time) {
+    console.error("Invalid date or time:", { date, time });
+    throw new Error("Invalid date or time.");
+  }
+
+  // Convert date to a string if it's a Date object
+  let dateString;
+  if (date instanceof Date) {
+    dateString = date.toISOString(); // Convert Date object to ISO 8601 string
+  } else if (typeof date === "string") {
+    dateString = date; // Use the string as-is
+  } else {
+    console.error("Invalid date type:", typeof date);
+    throw new Error("Invalid date type. Expected Date object or string.");
+  }
+
+  // Extract the date part (YYYY-MM-DD) from the ISO 8601 date string
+  const dateOnly = dateString.split("T")[0];
+
+  // Validate date format (YYYY-MM-DD)
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!dateRegex.test(dateOnly)) {
+    console.error("Invalid date format. Expected YYYY-MM-DD:", dateOnly);
+    throw new Error("Invalid date format. Expected YYYY-MM-DD.");
+  }
+
+  // Validate time format (HH:MM:SS)
+  const timeRegex = /^\d{2}:\d{2}:\d{2}$/;
+  if (!timeRegex.test(time)) {
+    console.error("Invalid time format. Expected HH:MM:SS:", time);
+    throw new Error("Invalid time format. Expected HH:MM:SS.");
+  }
+
+  // Create a Date object for formattedDate
+  let formattedDate;
+  try {
+    formattedDate = new Date(dateOnly).toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    throw new Error("Invalid date format.");
+  }
+
+  // Create startDateTime and endDateTime
+  let startDateTime, endDateTime;
+  try {
+    const eventDate = new Date(`${dateOnly}T${time}`);
+    if (isNaN(eventDate.getTime())) {
+      throw new Error("Invalid date or time format.");
+    }
+
+    startDateTime =
+      eventDate.toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z";
+    endDateTime =
+      new Date(eventDate.getTime() + 60 * 60 * 1000) // Add 1 hour
+        .toISOString()
+        .replace(/[-:]/g, "")
+        .slice(0, 15) + "Z";
+  } catch (error) {
+    console.error("Error creating event date:", error);
+    throw new Error("Invalid date or time format.");
+  }
+
+  // Generate the Google Calendar link
+  const googleCalendarLink = `https://www.google.com/calendar/render?action=TEMPLATE&text=Appointment+for+${encodeURIComponent(
+    patient_name
+  )}&dates=${startDateTime}/${endDateTime}&details=Dentist:+${encodeURIComponent(
+    dentist_name
+  )}%0APatient:+${encodeURIComponent(
+    patient_name
+  )}%0AAddress:+${encodeURIComponent(address)}&location=${encodeURIComponent(
+    address
+  )}`;
 
   const mailOptions = {
     from: "noreply@dnh.dental",
@@ -193,6 +267,7 @@ Here are your booking details:
 
 If you would like to cancel or reschedule your booking, please click the link below:
 ${FRONTEND_URL}/profile/${bookingId}
+Add this event to your Google Calendar: ${googleCalendarLink}
 
 Thank you for choosing our service!
 
@@ -212,6 +287,7 @@ The DNH Dental Team`,
       <li><strong>Address:</strong> ${address}</li>
       <li><strong>Payment Status:</strong> Completed </li>
     </ul>
+    <p>Add this event to your Google Calendar: <a href="${googleCalendarLink}">Add to Google Calendar</a></p>
     <p>If you would like to cancel or reschedule your booking, please click the link below:</p>
     <p><a href="${FRONTEND_URL}/profile/${bookingId}">Cancel or Reschedule Booking</a></p>
     <p>Thank you for choosing our service!</p>
