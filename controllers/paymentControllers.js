@@ -30,19 +30,20 @@ const deleteExpiredBookings = async () => {
 cron.schedule("* * * * *", deleteExpiredBookings);
 
 const createPaymentIntent = async (req, res) => {
-  const { bookingId, amount, currency } = req.body;
+  const { bookingId, amount, currency, receipt_email } = req.body;
 
   try {
-    if (!bookingId || !amount) {
+    if (!bookingId || !amount || !receipt_email) {
       return res
         .status(400)
-        .json({ error: "Booking ID and amount are required." });
+        .json({ error: "Booking ID, amount, and receipt email are required." });
     }
 
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(amount * 100),
       currency: currency || "gbp",
       metadata: { bookingId },
+      receipt_email, // Include the receipt email here
     });
 
     res.status(200).json({
@@ -76,6 +77,13 @@ const confirmPayment = async (req, res) => {
         return res.status(404).json({ error: "Booking details not found." });
       }
 
+      // Update payment intent with receipt email if it's missing
+      if (!paymentIntent.receipt_email) {
+        await stripe.paymentIntents.update(paymentId, {
+          receipt_email: bookingDetails.email, // Use the email from the booking details
+        });
+      }
+
       const updateResult = await knex("bookings")
         .where({ id: bookingId })
         .update({
@@ -106,6 +114,7 @@ const confirmPayment = async (req, res) => {
 
       await knex("blocked_dates").insert(blockedDates);
 
+      // Send confirmation emails
       await sendPaymentConfirmationEmail(bookingId, bookingDetails);
       await sendCompanyNotificationEmail(paymentId, bookingId);
 
